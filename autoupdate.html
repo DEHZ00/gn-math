@@ -1,47 +1,35 @@
 <script>
-    // Block popups immediately on this page
-    window.open = function() { return null; };
-
     launch();
-
-    function blockPopups() {
-      window.open = function() { return null; };
-      // Also block after any script might restore it
-      Object.defineProperty(window, 'open', {
-        value: function() { return null; },
-        writable: false,
-        configurable: false
-      });
-    }
 
     function launch() {
       try {
-        const AD_DOMAINS = ['aclib','googletagmanager','eduplace','breadisgay','invoke.js','adsbygoogle','pagead','popads','exoclick','propellerads','googlesyndication','pub-5521219086088837'];
-
-        fetch("https://cdn.jsdelivr.net/gh/DEHZ00/gn-math@main/singlefile.html?t="+Date.now())
+        fetch("https://cdn.jsdelivr.net/gh/gn-math/gn-math-DONTDMCA@main/singlefile.html?t="+Date.now())
           .then(response => response.text())
           .then(html => {
-                // Strip all ad scripts from fetched HTML before doing anything
+                // Strip ad/tracking scripts before injecting
+                const AD_DOMAINS = ['aclib','googletagmanager','eduplace','breadisgay','invoke.js','adsbygoogle','pagead','popads','exoclick','propellerads','googlesyndication'];
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 doc.querySelectorAll('script').forEach(s => {
                   const src = s.src || s.textContent || '';
                   if (AD_DOMAINS.some(d => src.includes(d))) s.remove();
                 });
-                // Also strip meta refresh and ad iframes
-                doc.querySelectorAll('iframe[src*="ad"], iframe[src*="pop"]').forEach(el => el.remove());
                 const cleanHtml = doc.documentElement.outerHTML;
 
-                // Replace page
                 document.documentElement.innerHTML = cleanHtml;
 
-                // Re-block immediately after innerHTML wipes our override
-                blockPopups();
+                // Block window.open popups immediately
+                window.open = function(url, t, f) {
+                  if (!url || url === "about:blank") {
+                    return window._origOpen ? window._origOpen(url, t, f) : null;
+                  }
+                  return null;
+                };
 
-                // Only re-run non-ad scripts
                 document.documentElement.querySelectorAll('script').forEach(oldScript => {
                     const src = oldScript.src || oldScript.textContent || '';
-                    if (AD_DOMAINS.some(d => src.includes(d))) return;
+                    const isAd = AD_DOMAINS.some(d => src.includes(d));
+                    if (isAd) return;
                     const newScript = document.createElement('script');
                     if (oldScript.src) {
                         newScript.src = oldScript.src;
@@ -50,11 +38,6 @@
                     }
                     document.body.appendChild(newScript);
                 });
-
-                // Re-block AGAIN after all scripts run
-                setTimeout(blockPopups, 0);
-                setTimeout(blockPopups, 100);
-                setTimeout(blockPopups, 500);
           });
       } catch (error) {
         console.error('error:', error);
