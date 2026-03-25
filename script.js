@@ -6,14 +6,14 @@ const sortOptions = document.getElementById('sortOptions');
 const filterOptions = document.getElementById('filterOptions');
 // https://www.jsdelivr.com/tools/purge
 const zonesurls = [
-    "https://cdn.jsdelivr.net/gh/%67%6e%2d%6d%61%74%68/assets@main/zones.json",
-    "https://cdn.jsdelivr.net/gh/%67%6e%2d%6d%61%74%68/assets@latest/zones.json",
-    "https://cdn.jsdelivr.net/gh/%67%6e%2d%6d%61%74%68/assets@master/zones.json",
-    "https://cdn.jsdelivr.net/gh/%67%6e%2d%6d%61%74%68/assets/zones.json"
+    "https://cdn.jsdelivr.net/gh/DEHZ00/assets@main/zones.json",
+    "https://cdn.jsdelivr.net/gh/DEHZ00/assets@latest/zones.json",
+    "https://cdn.jsdelivr.net/gh/DEHZ00/assets@master/zones.json",
+    "https://cdn.jsdelivr.net/gh/DEHZ00/assets/zones.json"
 ];
 let zonesURL = zonesurls[Math.floor(Math.random() * zonesurls.length)];
-const coverURL = "https://cdn.jsdelivr.net/gh/%67%6e%2d%6d%61%74%68/covers@main";
-const htmlURL = "https://cdn.jsdelivr.net/gh/%67%6e%2d%6d%61%74%68/html@main";
+const coverURL = "https://cdn.jsdelivr.net/gh/DEHZ00/assets@main";
+const htmlURL = "https://cdn.jsdelivr.net/gh/DEHZ00/html@main";
 let zones = [];
 let popularityData = {};
 const featuredContainer = document.getElementById('featuredZones');
@@ -29,22 +29,22 @@ async function listZones() {
       let shajson;
       let sha;
         try {
-          sharesponse = await fetch("https://api.github.com/repos/%67%6e%2d%6d%61%74%68/assets/commits?t="+Date.now());
+          sharesponse = await fetch("https://api.github.com/repos/DEHZ00/assets/commits?t="+Date.now());
         } catch (error) {}
         if (sharesponse && sharesponse.status === 200) {
           try {
             shajson = await sharesponse.json();
             sha = shajson[0]['sha'];
             if (sha) {
-                zonesURL = `https://cdn.jsdelivr.net/gh/%67%6e%2d%6d%61%74%68/assets@${sha}/zones.json`;
+                zonesURL = `https://cdn.jsdelivr.net/gh/DEHZ00/assets@${sha}/zones.json`;
             }
           } catch (error) {
             try {
-                let secondarysharesponse = await fetch("https://raw.githubusercontent.com/%67%6e%2d%6d%61%74%68/xml/refs/heads/main/sha.txt?t="+Date.now());
+                let secondarysharesponse = await fetch("https://raw.githubusercontent.com/DEHZ00/xml/refs/heads/main/sha.txt?t="+Date.now());
                 if (secondarysharesponse && secondarysharesponse.status === 200) {
                     sha = (await secondarysharesponse.text()).trim();
                     if (sha) {
-                        zonesURL = `https://cdn.jsdelivr.net/gh/%67%6e%2d%6d%61%74%68/assets@${sha}/zones.json`;
+                        zonesURL = `https://cdn.jsdelivr.net/gh/DEHZ00/assets@${sha}/zones.json`;
                     }
                 }
             } catch(error) {}
@@ -126,7 +126,7 @@ async function fetchPopularity(duration) {
             popularityData[duration] = {};
         }
         const response = await fetch(
-            "https://data.jsdelivr.com/v1/stats/packages/gh/%67%6e%2d%6d%61%74%68/html@main/files?period=" + duration
+            "https://data.jsdelivr.com/v1/stats/packages/gh/DEHZ00/html@main/files?period=" + duration
         );
         const data = await response.json();
         data.forEach(file => {
@@ -730,7 +730,7 @@ async function getAllStats() {
   }
 
   const BASE_URL =
-    "https://data.jsdelivr.com/v1/stats/packages/gh/%67%6e%2d%6d%61%74%68/html@main/files";
+    "https://data.jsdelivr.com/v1/stats/packages/gh/DEHZ00/html@main/files";
   const PERIOD = "year";
   const PAGE_BATCH = 5;
 
@@ -795,7 +795,7 @@ function showZoneInfo() {
     popupBody.innerHTML = `<p>Loading...</p>`
     popupBody.contentEditable = false;
     document.getElementById('popupOverlay').style.display = "flex";
-    fetch(`https://api.github.com/repos/%67%6e%2d%6d%61%74%68/html/commits?path=${id}.html`).then(res => res.json()).then(async json => {
+    fetch(`https://api.github.com/repos/DEHZ00/html/commits?path=${id}.html`).then(res => res.json()).then(async json => {
         let stats = await getStats (id);
         idjson = zones.filter(a=>a.id===id)[0]
         document.getElementById('popupTitle').textContent = `${idjson.name} Info`;
