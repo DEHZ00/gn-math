@@ -283,19 +283,38 @@ function filterZones() {
     displayZones(filteredZones);
 }
 
+const _AD_BLOCK = ['motorsnag','eduplace','breadisgay','invoke.js','adsbygoogle','pagead','googlesyndication','aclib','popads','exoclick','propellerads'];
+
+function _cleanGameHtml(html) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    doc.querySelectorAll('script').forEach(s => {
+        const src = s.src || s.textContent || '';
+        if (_AD_BLOCK.some(d => src.includes(d))) s.remove();
+    });
+    return doc.documentElement.outerHTML;
+}
+
 function openZone(file) {
     if (file.url.startsWith("http")) {
-        window.open(file.url, "_blank");
+        // Load in frame instead of new tab
+        document.getElementById('zoneName').textContent = file.name;
+        document.getElementById('zoneId').textContent = file.id;
+        const author = document.getElementById('zoneAuthor');
+        if (author) { author.textContent = file.author ? "by " + file.author : ""; if (file.authorLink) author.href = file.authorLink; }
+        zoneFrame.src = file.url;
+        document.getElementById('zoneViewer').style.display = "flex";
     } else {
         const url = file.url.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
         fetch(url+"?t="+Date.now()).then(response => response.text()).then(html => {
+            const cleanHtml = _cleanGameHtml(html);
             if (zoneFrame.contentDocument === null) {
                 zoneFrame = document.createElement("iframe");
                 zoneFrame.id = "zoneFrame";
                 zoneViewer.appendChild(zoneFrame);
             }
             zoneFrame.contentDocument.open();
-            zoneFrame.contentDocument.write(html);
+            zoneFrame.contentDocument.write(cleanHtml);
             zoneFrame.contentDocument.close();
             document.getElementById('zoneName').textContent = file.name;
             document.getElementById('zoneId').textContent = file.id;
