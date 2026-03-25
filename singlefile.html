@@ -509,7 +509,14 @@ function filterZones() {
 
 function openZone(file) {
   if (file.url.startsWith("http")) {
-    window.open(file.url, "_blank");
+    // Open in iframe instead of new tab
+    document.getElementById('zoneName').textContent = file.name;
+    document.getElementById('zoneId').textContent = file.id;
+    const author = document.getElementById('zoneAuthor');
+    author.textContent = file.author ? "by " + file.author : "";
+    if (file.authorLink) author.href = file.authorLink;
+    zoneFrame.src = file.url;
+    zoneViewer.style.display = "flex";
     return;
   }
   const url = file.url.replace("{COVER_URL}", coverURL).replace("{HTML_URL}", htmlURL);
@@ -521,8 +528,17 @@ function openZone(file) {
         zoneFrame.id = "zoneFrame";
         zoneViewer.appendChild(zoneFrame);
       }
+      // Strip ad/tracking scripts before writing to iframe
+      const AD_DOMAINS = ['aclib','googletagmanager','eduplace','breadisgay','invoke.js','gtag','adsbygoogle','popads','exoclick','propellerads'];
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      doc.querySelectorAll('script').forEach(s => {
+        const src = s.src || s.textContent || '';
+        if (AD_DOMAINS.some(d => src.includes(d))) s.remove();
+      });
+      const cleanHtml = doc.documentElement.outerHTML;
       zoneFrame.contentDocument.open();
-      zoneFrame.contentDocument.write(html);
+      zoneFrame.contentDocument.write(cleanHtml);
       zoneFrame.contentDocument.close();
       document.getElementById('zoneName').textContent = file.name;
       document.getElementById('zoneId').textContent = file.id;
@@ -661,5 +677,15 @@ HTMLCanvasElement.prototype.toDataURL = function() { return ""; };
 
 listZones();
   </script>
+<script>
+// Block all popup/ad windows
+(function() {
+  const _orig = window.open.bind(window);
+  window.open = function(url, t, f) {
+    if (!url || url === "about:blank" || url === "") return _orig(url, t, f);
+    return null;
+  };
+})();
+</script>
 </body>
 </html>
